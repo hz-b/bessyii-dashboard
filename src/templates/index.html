@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bessy II Dashboard</title>
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" rel="stylesheet">
+</head>
+<body>
+<div class="jumbotron text-center" style="background-color: #6aadf4;">
+    <h1 style="color: white;">Bessy II Dashboard</h1>
+</div>
+<div class="container">
+    <div class="row border p-3">
+        <div class="col-3">
+            <div class="">
+                <label for="measurementType">Select measurement type:</label>
+                <select class="form-select" id="measurementType">
+                    <option value="Type 1">BBA</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="">
+                <label for="configuration">Select configuration:</label>
+                <select class="form-select" id="configuration" onchange="displayConfigurationFields(this.value)">
+                    {% for config in configurations %}
+                    <option value="{{ config }}">{{ config }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="border p-3">
+                <label for="measurementFields">Configuration Data:</label>
+                <div id="measurementFields"></div>
+            </div>
+        </div>
+
+        <div class="col-2">
+            <button class="btn btn-info mt-4" id="executeBtn" type="button">Measure Quad Response</button>
+        </div>
+
+        <div class="col-5 mt-3">
+            <div class="border p-3">
+                <label for="measurementId">Measurement UID:</label>
+                <div id="measurementId"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New row for "Enter measurement ID," "Analyze" button, and dropdown list -->
+    <div class="row border p-3 mt-3">
+        <div class="col-4">
+            <div class="">
+                <label for="enterMeasurementID">Enter measurement ID:</label>
+                <input class="form-control" id="enterMeasurementID" type="text">
+            </div>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-success mt-4" id="analyzeBtn" type="button">Analyze</button>
+        </div>
+
+        <div class="col-3">
+            <div class="">
+                <label for="analyzeChart">Select Plot:</label>
+                <select class="form-select" id="analyzeChart">
+                    <option value="Plot 1">Plot 1</option>
+                    <option value="Plot 2">Plot 2</option>
+                    <option value="Plot 3">Plot 3</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col">
+            <div id="chartDiv" style="border: 1px solid #dee2e6; padding: 10px; min-height: 300px;"></div>
+        </div>
+    </div>
+</div>
+<script crossorigin="anonymous"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    // JavaScript code to handle dropdown selection change
+    document.getElementById("configuration").addEventListener("change", function () {
+        const selectedName = this.value;
+        displayConfigurationFields(selectedName);
+    });
+
+    // Function to display the fields of the selected configuration
+    function displayConfigurationFields(selectedName) {
+        const measurementFieldsDiv = document.getElementById("measurementFields");
+
+        // Clear previous content
+        measurementFieldsDiv.innerHTML = "";
+
+        // Fetch the configurations from the JavaScript variable
+        const configurations = JSON.parse('{{ sample_configurations | safe }}');
+
+        // Find the selected configuration by matching the name
+        const selectedConfig = configurations.find(config => config.name === selectedName);
+        if (selectedConfig) {
+            // Remove the ObjectId field from the selected configuration
+            delete selectedConfig._id;
+
+            // Create a string to display all the fields in the measurementFieldsDiv
+            let fieldsHTML = "";
+            for (const [key, value] of Object.entries(selectedConfig)) {
+                fieldsHTML += `<p><strong>${key}:</strong> ${convertToString(value)}</p>`;
+            }
+            measurementFieldsDiv.innerHTML = fieldsHTML;
+        }
+    }
+
+    // Function to convert list fields to strings
+    function convertToString(value) {
+        if (Array.isArray(value)) {
+            return value.join(', ');
+        }
+        return value;
+    }
+</script>
+
+
+<script>
+        // Function to handle the button click and make the POST request
+    function measureQuadResponse() {
+        const measurementFieldsDiv = document.getElementById("measurementFields");
+        const innerFields = {};
+
+        for (const child of measurementFieldsDiv.children) {
+            // Check if the child element is a <p> tag
+            if (child.tagName === 'P') {
+                // Get the text content of the child element
+                const text = child.textContent;
+                // Split the text by ':' using a regular expression (only split at the first occurrence)
+                const [key, ...valueArr] = text.split(/:(.+)/).map(part => part.trim());
+                // Join the value array back into a string and remove the trailing colon from the value
+                const value = valueArr.join(':').trim().replace(/:$/, '');
+                // Add the key-value pair to the innerFields object
+                innerFields[key] = value;
+            }
+        }
+
+        // Call the POST service with the inner fields as the payload
+        fetch("/measurements/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(innerFields)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response data, if needed
+            console.log("Response from server:", data);
+
+            // Display the returned measurement ID in the measurementId div
+            const measurementIdDiv = document.getElementById("measurementId");
+            measurementIdDiv.textContent = `${data.uids}`;
+            // Update the enterMeasurementID input field with the measurement ID
+            const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+            enterMeasurementIDInput.value = data.uids;
+        })
+        .catch(error => {
+            // Handle any errors that occur during the request
+            console.error("Error:", error);
+        });
+    }
+
+    // Add event listener to the "Measure Quad Response" button
+    document.getElementById("executeBtn").addEventListener("click", measureQuadResponse);
+
+    // Add an event listener to the dropdown to render the chart on change
+    document.getElementById("analyzeChart").addEventListener("change", function () {
+        const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+        const selectedValue = this.value;
+        renderChart(selectedValue, enterMeasurementIDInput.value);
+    });
+    // Function to render the chart based on the selected value
+    function renderChart(selectedValue, uid) {
+
+        // Replace this with your actual chart rendering logic using Plotly
+        // Example chart rendering code:
+        const trace = {
+            x: [1, 2, 3, 4, 5],
+            y: [selectedValue === "Configuration A" ? 10 : 5, 8, 6, 4, 2],
+            type: "scatter"
+        };
+        const layout = {
+            title: `Plot for ${selectedValue}`,
+            xaxis: {
+                title: "X-axis"
+            },
+            yaxis: {
+                title: "Y-axis"
+            }
+        };
+        const data = [trace];
+        Plotly.newPlot("chartDiv", data, layout);
+    }
+    // Function to fetch data from the API and render the chart
+    function fetchDataAndRenderChart(selectedValue, uid) {
+        // Fetch data from the API endpoint
+        fetch(`/preprocessedmeasurement/${uid}/`)
+            .then(response => response.json())
+            .then(data => {
+                // Create a trace for the plot
+                const trace = {
+                    x: [1, 2, 3, 4, 5], // Replace this with your x-axis data
+                    y: data.data, // Use the fetched data for y-axis
+                    type: "scatter"
+                };
+
+                // Create layout options for the plot
+                const layout = {
+                    title: `Plot for ${selectedValue}`,
+                    xaxis: {
+                        title: "X-axis"
+                    },
+                    yaxis: {
+                        title: "Y-axis"
+                    }
+                };
+
+                // Create data array and render the plot
+                const chartData = [trace];
+                Plotly.newPlot("chartDiv", chartData, layout);
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+    }
+
+    // Add event listener to "Analyze" button to load chart based on dropdown selection
+    document.getElementById("analyzeBtn").addEventListener("click", function () {
+        const selectedChart = document.getElementById("analyzeChart").value;
+        const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+        const uid = enterMeasurementIDInput.value;
+        fetchDataAndRenderChart(selectedChart, uid);
+    });
+
+    // todo: temp
+    // Add event listener to "Analyze" button to load chart based on dropdown selection
+    // document.getElementById("analyzeBtn").addEventListener("click", function () {
+    //     const selectedChart = document.getElementById("analyzeChart").value;
+    //     renderAnalyzeChart(selectedChart);
+    // });
+
+    // Function to render the chart for analysis based on the selected value
+    function renderAnalyzeChart(selectedChart) {
+        // Replace this with your actual chart rendering logic using Plotly
+        // Example chart rendering code:
+        const trace = {
+            x: [1, 2, 3, 4, 5],
+            y: [selectedChart === "Chart 1" ? 10 : 5, 8, 6, 4, 2],
+            type: "scatter"
+        };
+        const layout = {
+            title: `Analysis Chart for ${selectedChart}`,
+            xaxis: {
+                title: "X-axis"
+            },
+            yaxis: {
+                title: "Y-axis"
+            }
+        };
+        const data = [trace];
+        Plotly.newPlot("chartDiv", data, layout);
+    }
+</script>
+
+<script src="src/static/main.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script onload="loadMainJS()" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</body>
+</html>
+

@@ -71,6 +71,7 @@
                 </select>
             </div>
         </div>
+        <div id="plot" class="col-9"></div>
     </div>
 
     <div class="row mt-3">
@@ -179,57 +180,67 @@
     document.getElementById("analyzeChart").addEventListener("change", function () {
         const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
         const selectedValue = this.value;
-        renderChart(selectedValue, enterMeasurementIDInput.value);
+        fetchDataAndRenderChart(selectedValue, enterMeasurementIDInput.value);
     });
     // Function to render the chart based on the selected value
     function renderChart(selectedValue, uid) {
-
-        // Replace this with your actual chart rendering logic using Plotly
-        // Example chart rendering code:
-        const trace = {
-            x: [1, 2, 3, 4, 5],
-            y: [selectedValue === "Configuration A" ? 10 : 5, 8, 6, 4, 2],
-            type: "scatter"
-        };
-        const layout = {
-            title: `Plot for ${selectedValue}`,
-            xaxis: {
-                title: "X-axis"
-            },
-            yaxis: {
-                title: "Y-axis"
-            }
-        };
-        const data = [trace];
-        Plotly.newPlot("chartDiv", data, layout);
+        fetchDataAndRenderChart(selectedValue, uid)
     }
     // Function to fetch data from the API and render the chart
     function fetchDataAndRenderChart(selectedValue, uid) {
-        // Fetch data from the API endpoint
-        fetch(`/preprocessedmeasurement/${uid}/`)
+        fetch(`/estimatedangles/${uid}/`)
             .then(response => response.json())
             .then(data => {
-                // Create a trace for the plot
-                const trace = {
-                    x: [1, 2, 3, 4, 5], // Replace this with your x-axis data
-                    y: data.data, // Use the fetched data for y-axis
-                    type: "scatter"
-                };
+                // print("printttttting")
+                // Extract the necessary data from the fetched data
+                const perMagnetData = data.per_magnet;
 
-                // Create layout options for the plot
-                const layout = {
-                    title: `Plot for ${selectedValue}`,
-                    xaxis: {
-                        title: "X-axis"
-                    },
-                    yaxis: {
-                        title: "Y-axis"
+                // Extract x and y bpm_offsets for plotting
+                const xOffsets = [];
+                const yOffsets = [];
+                const magnetNames = [];
+
+                for (const magnetName in perMagnetData) {
+                    if (perMagnetData.hasOwnProperty(magnetName)) {
+                        const magnet = perMagnetData[magnetName];
+                        const xOffsetsData = magnet.x.bpm_offsets;
+                        const yOffsetsData = magnet.y.bpm_offsets;
+
+                        if (xOffsetsData && yOffsetsData) {
+                            xOffsets.push(xOffsetsData.value);
+                            yOffsets.push(yOffsetsData.value);
+                            magnetNames.push(magnet.name); // Use the 'name' field
+                        }
                     }
+                }
+
+                // Create traces for x and y bpm_offsets
+                const xOffsetsTrace = {
+                    x: magnetNames,
+                    y: xOffsets,
+                    type: 'bar',
+                    name: 'X BPM Offsets'
                 };
 
-                // Create data array and render the plot
-                const chartData = [trace];
-                Plotly.newPlot("chartDiv", chartData, layout);
+                const yOffsetsTrace = {
+                    x: magnetNames,
+                    y: yOffsets,
+                    type: 'bar',
+                    name: 'Y BPM Offsets'
+                };
+
+                // Create the layout for the plot
+                const layout = {
+                    title: 'BPM Offsets for X and Y Planes',
+                    xaxis: { title: 'Magnet Name' },
+                    yaxis: { title: 'Offset Value' }
+                };
+
+                // Combine the traces
+                const data1 = [xOffsetsTrace, yOffsetsTrace];
+
+                // Create the plot
+                Plotly.newPlot('plot', data1, layout);
             })
             .catch(error => {
                 console.error("Error fetching data:", error);
@@ -251,27 +262,6 @@
     //     renderAnalyzeChart(selectedChart);
     // });
 
-    // Function to render the chart for analysis based on the selected value
-    function renderAnalyzeChart(selectedChart) {
-        // Replace this with your actual chart rendering logic using Plotly
-        // Example chart rendering code:
-        const trace = {
-            x: [1, 2, 3, 4, 5],
-            y: [selectedChart === "Chart 1" ? 10 : 5, 8, 6, 4, 2],
-            type: "scatter"
-        };
-        const layout = {
-            title: `Analysis Chart for ${selectedChart}`,
-            xaxis: {
-                title: "X-axis"
-            },
-            yaxis: {
-                title: "Y-axis"
-            }
-        };
-        const data = [trace];
-        Plotly.newPlot("chartDiv", data, layout);
-    }
 </script>
 
 <script src="src/static/main.js"></script>

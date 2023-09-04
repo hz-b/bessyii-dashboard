@@ -35,9 +35,9 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "sample_configurations": configurations_json, "configurations": name_list})
 
 
-@router.get("/preprocessedmeasurement/{uid}/", response_description="Get preprocessed measurement for a specific uid")
+@router.get("/estimatedangles/{uid}/", response_description="Get estimated angles for a specific uid")
 async def get_preprocessed_measurement(uid: str):
-    preprocessed_measurement_collection = db["preprocessedmeasurement"]
+    preprocessed_measurement_collection = db["estimatedangles"]
     # Perform the findOne query
     preprocessed_measurement = preprocessed_measurement_collection.find_one({"uid": uid})
 
@@ -46,8 +46,6 @@ async def get_preprocessed_measurement(uid: str):
         # Remove the 'uid' field from the measurement dictionary
         preprocessed_measurement.pop('uid', None)
         preprocessed_measurement.pop('_id', None)
-        # Convert the retrieved dictionary back to an xarray DataArray
-        preprocessed_measurement = xr.DataArray.from_dict(preprocessed_measurement)
         # Return the measurement as JSON response
         # return JSONResponse(content=preprocessed_measurement)
         return preprocessed_measurement

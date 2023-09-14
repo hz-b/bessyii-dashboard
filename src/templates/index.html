@@ -16,6 +16,7 @@
                 <label for="measurementType">Select measurement type:</label>
                 <select class="form-select" id="measurementType">
                     <option value="Type 1">BBA</option>
+                    <option value="Type 2">ORM</option>
                 </select>
             </div>
         </div>
@@ -67,6 +68,7 @@
                     <option value="Plot 1">Plot 1</option>
                     <option value="Plot 2">Plot 2</option>
                     <option value="Plot 3">Plot 3</option>
+                    <option value="Plot 4 STD">Plot 4 STD</option>
                     <!-- Add more options as needed -->
                 </select>
             </div>
@@ -188,63 +190,237 @@
     }
     // Function to fetch data from the API and render the chart
     function fetchDataAndRenderChart(selectedValue, uid) {
-        fetch(`/estimatedangles/${uid}/`)
+        if ( selectedValue == "Plot 1" ) {
+            fetch(`/estimatedangles/${uid}/`)
+                .then(response => response.json())
+                .then(data => {
+                    // print("printttttting")
+                    // Extract the necessary data from the fetched data
+                    const perMagnetData = data.per_magnet;
+
+                    // Extract x and y bpm_offsets for plotting
+                    const xOffsets = [];
+                    const yOffsets = [];
+                    const magnetNames = [];
+
+                    for (const magnetName in perMagnetData) {
+                        if (perMagnetData.hasOwnProperty(magnetName)) {
+                            const magnet = perMagnetData[magnetName];
+                            const xOffsetsData = magnet.x.bpm_offsets;
+                            const yOffsetsData = magnet.y.bpm_offsets;
+
+                            if (xOffsetsData && yOffsetsData) {
+                                xOffsets.push(xOffsetsData.value);
+                                yOffsets.push(yOffsetsData.value);
+                                magnetNames.push(magnet.name); // Use the 'name' field
+                            }
+                        }
+                    }
+
+                    // Create traces for x and y bpm_offsets
+                    const xOffsetsTrace = {
+                        x: magnetNames,
+                        y: xOffsets,
+                        type: 'bar',
+                        name: 'X BPM Offsets'
+                    };
+
+                    const yOffsetsTrace = {
+                        x: magnetNames,
+                        y: yOffsets,
+                        type: 'bar',
+                        name: 'Y BPM Offsets'
+                    };
+
+                    // Create the layout for the plot
+                    const layout = {
+                        title: 'BPM Offsets for X and Y Planes',
+                        xaxis: {title: 'Magnet Name'},
+                        yaxis: {title: 'Offset Value'}
+                    };
+
+                    // Combine the traces
+                    const data1 = [xOffsetsTrace, yOffsetsTrace];
+
+                    // Create the plot
+                    Plotly.newPlot('plot', data1, layout);
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+        }
+        else if (selectedValue == "Plot 2"){
+            fetch(`/estimatedangles/${uid}/`)
             .then(response => response.json())
             .then(data => {
-                // print("printttttting")
                 // Extract the necessary data from the fetched data
                 const perMagnetData = data.per_magnet;
 
-                // Extract x and y bpm_offsets for plotting
-                const xOffsets = [];
-                const yOffsets = [];
-                const magnetNames = [];
+                // Initialize arrays to store BPM names and scaled BPM offsets
+                const bpmNames = [];
+                const xBpmOffsetsScaled = [];
+                const yBpmOffsetsScaled = [];
 
+                // Loop through each magnet data
                 for (const magnetName in perMagnetData) {
                     if (perMagnetData.hasOwnProperty(magnetName)) {
                         const magnet = perMagnetData[magnetName];
-                        const xOffsetsData = magnet.x.bpm_offsets;
-                        const yOffsetsData = magnet.y.bpm_offsets;
 
-                        if (xOffsetsData && yOffsetsData) {
-                            xOffsets.push(xOffsetsData.value);
-                            yOffsets.push(yOffsetsData.value);
-                            magnetNames.push(magnet.name); // Use the 'name' field
-                        }
+                        // Extract BPM names and BPM offsets for x and y planes
+                        const bpmNamesX = Object.keys(magnet.x.bpm_offsets);
+                        const xBpmOffsets = bpmNamesX.map(bpmName => magnet.x.bpm_offsets[bpmName].value * 1000);
+
+                        const bpmNamesY = Object.keys(magnet.y.bpm_offsets);
+                        const yBpmOffsets = bpmNamesY.map(bpmName => magnet.y.bpm_offsets[bpmName].value * 1000);
+
+                        // Append BPM names and scaled BPM offsets to the arrays
+                        bpmNames.push(...bpmNamesX);
+                        xBpmOffsetsScaled.push(...xBpmOffsets);
+                        yBpmOffsetsScaled.push(...yBpmOffsets);
                     }
                 }
 
-                // Create traces for x and y bpm_offsets
-                const xOffsetsTrace = {
-                    x: magnetNames,
-                    y: xOffsets,
+                // Create traces for x and y BPM offsets
+                const xBpmOffsetsTrace = {
+                    x: bpmNames,
+                    y: xBpmOffsetsScaled,
                     type: 'bar',
-                    name: 'X BPM Offsets'
+                    name: 'X BPM Offsets (scaled)',
                 };
 
-                const yOffsetsTrace = {
-                    x: magnetNames,
-                    y: yOffsets,
+                const yBpmOffsetsTrace = {
+                    x: bpmNames,
+                    y: yBpmOffsetsScaled,
                     type: 'bar',
-                    name: 'Y BPM Offsets'
+                    name: 'Y BPM Offsets (scaled)',
                 };
 
                 // Create the layout for the plot
                 const layout = {
-                    title: 'BPM Offsets for X and Y Planes',
-                    xaxis: { title: 'Magnet Name' },
-                    yaxis: { title: 'Offset Value' }
+                    title: 'BPM Offsets for X and Y Planes (Scaled by 1000)',
+                    xaxis: { title: 'BPM Name' },
+                    yaxis: { title: 'Offset Value' },
+                    barmode: 'group', // To group the bars for each BPM
                 };
 
                 // Combine the traces
-                const data1 = [xOffsetsTrace, yOffsetsTrace];
+                const data2 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
 
                 // Create the plot
-                Plotly.newPlot('plot', data1, layout);
-            })
-            .catch(error => {
-                console.error("Error fetching data:", error);
+                Plotly.newPlot('plot', data2, layout);
             });
+        }
+        else if (selectedValue == "Plot 3"){
+            fetch(`/estimatedangles/${uid}/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Extract the necessary data from the fetched data for the first magnet
+                    const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
+
+                    // Extract BPM names and scaled BPM offsets for the x and y planes
+                    const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
+                    const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value * 1000);
+
+                    const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
+                    const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value * 1000);
+
+                    // Create traces for x and y BPM offsets as separate lines
+                    const xBpmOffsetsTrace = {
+                        x: bpmNamesX,
+                        y: xBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'X BPM Offsets (scaled)',
+                        line: { color: 'orange' }, // Orange color
+                    };
+
+                    const yBpmOffsetsTrace = {
+                        x: bpmNamesY,
+                        y: yBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'Y BPM Offsets (scaled)',
+                        line: { color: 'blue' }, // Blue color
+                    };
+
+                    // Create a trace for the red y line (multiplied by -1)
+                    const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
+                    const yRedBpmOffsetsTrace = {
+                        x: bpmNamesY,
+                        y: yRedBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'Y BPM Offsets (-1)',
+                        line: { color: 'red' }, // Red color
+                    };
+
+                    // Create the layout for the plot
+                    const layout = {
+                        title: 'BPM Offsets for X and Y Planes (Scaled by 1000) - First Magnet Only',
+                        xaxis: { title: 'BPM Name' },
+                        yaxis: { title: 'Offset Value' },
+                    };
+
+                    // Combine the traces
+                    const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
+
+                    // Create the plot
+                    Plotly.newPlot('plot', data3, layout);
+                });
+        }
+
+        else if (selectedValue == "Plot 4 STD"){
+            fetch(`/estimatedangles/${uid}/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Extract the necessary data from the fetched data for the first magnet
+                    const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
+
+                    // Extract BPM names and scaled BPM offsets for the x and y planes
+                    const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
+                    const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].std );
+
+                    const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
+                    const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].std );
+
+                    // Create traces for x and y BPM offsets as separate lines
+                    const xBpmOffsetsTrace = {
+                        x: bpmNamesX,
+                        y: xBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'X BPM Offsets (scaled)',
+                        line: { color: 'orange' }, // Orange color
+                    };
+
+                    const yBpmOffsetsTrace = {
+                        x: bpmNamesY,
+                        y: yBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'Y BPM Offsets (scaled)',
+                        line: { color: 'blue' }, // Blue color
+                    };
+
+                    // Create a trace for the red y line (multiplied by -1)
+                    const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
+                    const yRedBpmOffsetsTrace = {
+                        x: bpmNamesY,
+                        y: yRedBpmOffsets,
+                        mode: 'lines+markers',
+                        name: 'Y BPM Offsets ( -1 )',
+                        line: { color: 'red' }, // Red color
+                    };
+
+                    // Create the layout for the plot
+                    const layout = {
+                        title: 'BPM Offsets for X and Y Planes (Scaled by 1000) - First Magnet Only',
+                        xaxis: { title: 'BPM Name' },
+                        yaxis: { title: 'Offset Value' },
+                    };
+
+                    // Combine the traces
+                    const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
+
+                    // Create the plot
+                    Plotly.newPlot('plot', data3, layout);
+                });
+        }
     }
 
     // Add event listener to "Analyze" button to load chart based on dropdown selection

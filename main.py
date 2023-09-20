@@ -14,7 +14,7 @@ templates = Jinja2Templates(directory="src/templates")
 
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient("mongodb://localhost:27017/")
+    app.mongodb_client = MongoClient("mongodb://127.0.0.1:27017/")
     app.database = app.mongodb_client["bessyii"]
 
 

@@ -365,61 +365,70 @@
                     Plotly.newPlot('plot', data3, layout);
                 });
         }
-
         else if (selectedValue == "Plot 4 STD"){
-            fetch(`/estimatedangles/${uid}/`)
-                .then(response => response.json())
-                .then(data => {
-                    // Extract the necessary data from the fetched data for the first magnet
-                    const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
+        fetch(`/estimatedangles/${uid}/`)
+            .then(response => response.json())
+            .then(data => {
 
-                    // Extract BPM names and scaled BPM offsets for the x and y planes
-                    const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
-                    const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].std );
+            // Extract the necessary data from the fetched data for the first magnet
+            const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
 
-                    const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
-                    const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].std );
+            // Extract BPM names and scaled BPM offsets for the x and y planes
+            const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
+            const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value / 1000);
+            const xOffset = firstMagnetData.x.offset.value / 1000; // Scale by 1000
 
-                    // Create traces for x and y BPM offsets as separate lines
-                    const xBpmOffsetsTrace = {
-                        x: bpmNamesX,
-                        y: xBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'X BPM Offsets (scaled)',
-                        line: { color: 'orange' }, // Orange color
-                    };
+            const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
+            const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value / 1000);
+            const yOffset = firstMagnetData.y.offset.value / 1000; // Scale by 1000
 
-                    const yBpmOffsetsTrace = {
-                        x: bpmNamesY,
-                        y: yBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'Y BPM Offsets (scaled)',
-                        line: { color: 'blue' }, // Blue color
-                    };
+            // Create traces for x and y BPM offsets as separate lines
+            const xBpmOffsetsTrace = {
+                x: bpmNamesX,
+                y: xBpmOffsets,
+                mode: 'lines+markers',
+                name: 'X BPM Offsets (scaled)',
+                line: { color: 'orange' }, // Orange color
+            };
 
-                    // Create a trace for the red y line (multiplied by -1)
-                    const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
-                    const yRedBpmOffsetsTrace = {
-                        x: bpmNamesY,
-                        y: yRedBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'Y BPM Offsets ( -1 )',
-                        line: { color: 'red' }, // Red color
-                    };
+            const yBpmOffsetsTrace = {
+                x: bpmNamesY,
+                y: yBpmOffsets,
+                mode: 'lines+markers',
+                name: 'Y BPM Offsets (scaled)',
+                line: { color: 'blue' }, // Blue color
+            };
 
-                    // Create the layout for the plot
-                    const layout = {
-                        title: 'BPM Offsets for X and Y Planes (Scaled by 1000) - First Magnet Only',
-                        xaxis: { title: 'BPM Name' },
-                        yaxis: { title: 'Offset Value' },
-                    };
+            // Create traces for x and y offsets
+            const xOffsetTrace = {
+                x: ['X Offset'],
+                y: [xOffset],
+                type: 'bar',
+                name: 'X Offset (scaled)',
+                marker: { color: 'green' }, // Green color for bar
+            };
 
-                    // Combine the traces
-                    const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
+            const yOffsetTrace = {
+                x: ['Y Offset'],
+                y: [yOffset],
+                type: 'bar',
+                name: 'Y Offset (scaled)',
+                marker: { color: 'red' }, // Red color for bar
+            };
 
-                    // Create the plot
-                    Plotly.newPlot('plot', data3, layout);
-                });
+            // Create the layout for the plot
+            const layout = {
+                title: 'BPM Offsets and X, Y Offsets (Scaled by 1000) - First Magnet Only',
+                xaxis: { title: 'BPM Name / Offset Type' },
+                yaxis: { title: 'Offset Value' },
+            };
+
+                // Combine the traces
+                const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, xOffsetTrace, yOffsetTrace];
+
+                // Create the plot
+                Plotly.newPlot('plot', data3, layout);
+            });
         }
     }
 

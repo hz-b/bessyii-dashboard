@@ -201,6 +201,8 @@
                     // Extract x and y bpm_offsets for plotting
                     const xOffsets = [];
                     const yOffsets = [];
+                    const xOffsetErrors = [];
+                    const yOffsetErrors = [];
                     const magnetNames = [];
 
                     for (const magnetName in perMagnetData) {
@@ -213,6 +215,8 @@
                             if (xOffsetsData && yOffsetsData) {
                                 xOffsets.push(xOffsetsData.value * pscale);
                                 yOffsets.push(yOffsetsData.value * pscale);
+                                xOffsetErrors.push(xOffsetsData.std * pscale);
+                                yOffsetErrors.push(yOffsetsData.std * pscale);
                                 magnetNames.push(magnet.name); // Use the 'name' field
                             }
                         }
@@ -220,17 +224,27 @@
 
                     // Create traces for x and y bpm_offsets
                     const xOffsetsTrace = {
+                        name: 'quad x offset',
                         x: magnetNames,
                         y: xOffsets,
-                        type: 'bar',
-                        name: 'X BPM Offsets'
+                        error_y: {
+                            type: 'data',
+                            array : xOffsetErrors,
+                            visible : true
+                        },
+                        type: 'scatter'
                     };
 
                     const yOffsetsTrace = {
+                        name: 'quad y offset',
                         x: magnetNames,
                         y: yOffsets,
-                        type: 'bar',
-                        name: 'Y BPM Offsets'
+                        type: 'scatter',
+                        error_y: {
+                            type: 'data',
+                            array : yOffsetErrors,
+                            visible : true
+                        },
                     };
 
                     // Create the layout for the plot

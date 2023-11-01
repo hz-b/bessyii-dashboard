@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from bact_bessyii_dashboard import _pkg_files
 import os
+os.chdir(_pkg_files.joinpath("."))
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=_pkg_files.joinpath(".")), name="static")

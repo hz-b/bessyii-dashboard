@@ -3,14 +3,18 @@ from pymongo import MongoClient
 from starlette.templating import Jinja2Templates
 
 # from bact_bessyii_bluesky.applib.bba.api import router as api_router
-from src.controller.index_controller import router as api_router
+from bact_bessyii_dashboard.controller.index_controller import router as api_router
 import uvicorn
 from fastapi import APIRouter
 from fastapi.staticfiles import StaticFiles
 
+from bact_bessyii_dashboard import _pkg_files
+import os
+os.chdir(_pkg_files.joinpath("."))
+
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="."), name="static")
-templates = Jinja2Templates(directory="src/templates")
+app.mount("/static", StaticFiles(directory=_pkg_files.joinpath(".")), name="static")
+templates = Jinja2Templates(directory=_pkg_files.joinpath("templates"))
 
 @app.on_event("startup")
 def startup_db_client():

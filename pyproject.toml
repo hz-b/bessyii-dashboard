@@ -1,0 +1,20 @@
+[build-system]
+requires = [ "poetry-core>=1.0.0",]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "bact-bessyii-dashboard"
+version = "0.0.1"
+description = "Dashboard for BESSY II analysis"
+authors = [ "Waheedullah Sulaiman Khail", "Pierre Schnizer" ]
+license = "GPL-3.0"
+repository = "https://github.com/hz-b/bessyii-dashboard.git"
+documentation = "https://github.com/hz-b/bessyii-dashboard"
+homepage = "https://github.com/hz-b/bessyii-dashboard"
+keywords = []
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+fastapi = ">0"
+pymongo = ">0"
+uvicorn = ">0"

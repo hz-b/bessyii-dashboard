@@ -13,6 +13,10 @@ from bact_bessyii_bluesky.applib.bba.measurement_config import MeasurementConfig
 from fastapi import APIRouter, Request, FastAPI
 from pymongo import MongoClient
 
+from .. import _pkg_files
+
+
+
 app = FastAPI()
 router = APIRouter()
 # MongoDB connection
@@ -21,7 +25,9 @@ db = client["bessyii"]  # Replace "mydatabase" with your desired database name
 measurement_collection = db["measurements"]  # Collection to store the measurement_config
 
 router = APIRouter()
-templates = Jinja2Templates(directory="src/templates")
+#: todo needs clean up of import
+import bact_bessyii_dashboard
+templates = Jinja2Templates(directory=_pkg_files.joinpath("templates"))
 
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request):

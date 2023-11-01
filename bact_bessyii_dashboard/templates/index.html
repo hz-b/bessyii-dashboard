@@ -65,7 +65,7 @@
             <div class="">
                 <label for="analyzeChart">Select Plot:</label>
                 <select class="form-select" id="analyzeChart">
-                    <option value="Plot 1">Plot 1</option>
+                    <option value="magnet_offsets">Offsets of magnets</option>
                     <option value="Plot 2">Plot 2</option>
                     <option value="Plot 3">Plot 3</option>
                     <option value="Plot 4 STD">Plot 4 STD</option>
@@ -190,7 +190,7 @@
     }
     // Function to fetch data from the API and render the chart
     function fetchDataAndRenderChart(selectedValue, uid) {
-        if ( selectedValue == "Plot 1" ) {
+        if ( selectedValue == "magnet_offsets" ) {
             fetch(`/estimatedangles/${uid}/`)
                 .then(response => response.json())
                 .then(data => {
@@ -206,12 +206,13 @@
                     for (const magnetName in perMagnetData) {
                         if (perMagnetData.hasOwnProperty(magnetName)) {
                             const magnet = perMagnetData[magnetName];
-                            const xOffsetsData = magnet.x.bpm_offsets;
-                            const yOffsetsData = magnet.y.bpm_offsets;
+                            const xOffsetsData = magnet.x.offset;
+                            const yOffsetsData = magnet.y.offset;
 
+                            const pscale = 1000;
                             if (xOffsetsData && yOffsetsData) {
-                                xOffsets.push(xOffsetsData.value);
-                                yOffsets.push(yOffsetsData.value);
+                                xOffsets.push(xOffsetsData.value * pscale);
+                                yOffsets.push(yOffsetsData.value * pscale);
                                 magnetNames.push(magnet.name); // Use the 'name' field
                             }
                         }
@@ -236,7 +237,7 @@
                     const layout = {
                         title: 'BPM Offsets for X and Y Planes',
                         xaxis: {title: 'Magnet Name'},
-                        yaxis: {title: 'Offset Value'}
+                        yaxis: {title: 'Offset Value x,y [mm]'}
                     };
 
                     // Combine the traces

@@ -10,77 +10,107 @@
     <h1 style="color: white;">Bessy II Dashboard</h1>
 </div>
 <div class="container">
-    <div class="row border p-3">
-        <div class="col-3">
-            <div class="">
-                <label for="measurementType">Select measurement type:</label>
-                <select class="form-select" id="measurementType">
-                    <option value="Type 1">BBA</option>
-                    <option value="Type 2">ORM</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="">
-                <label for="configuration">Select configuration:</label>
-                <select class="form-select" id="configuration" onchange="displayConfigurationFields(this.value)">
-                    {% for config in configurations %}
-                    <option value="{{ config }}">{{ config }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="border p-3">
-                <label for="measurementFields">Configuration Data:</label>
-                <div id="measurementFields"></div>
-            </div>
-        </div>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="measurement-tab" data-bs-toggle="tab" href="#measurement" role="tab"
+               aria-controls="measurement" aria-selected="true">Measurement</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="analysis-tab" data-bs-toggle="tab" href="#analysis" role="tab"
+               aria-controls="analysis" aria-selected="false">Analysis</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="measurement" role="tabpanel" aria-labelledby="measurement-tab">
+            <div class="row border p-3">
+                <div class="col-3">
+                    <div class="">
+                        <label for="measurementType">Select measurement type:</label>
+                        <select class="form-select" id="measurementType">
+                            <option value="Type 1">BBA</option>
+                            <option value="Type 2">ORM</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="">
+                        <label for="configuration">Select configuration:</label>
+                        <select class="form-select" id="configuration"
+                                onchange="displayConfigurationFields(this.value)">
+                            {% for config in configurations %}
+                            <option value="{{ config }}">{{ config }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="border p-3">
+                        <label for="measurementFields">Configuration Data:</label>
+                        <div id="measurementFields"></div>
+                    </div>
+                </div>
 
-        <div class="col-2">
-            <button class="btn btn-info mt-4" id="executeBtn" type="button">Measure Quad Response</button>
-        </div>
+                <div class="col-2">
+                    <button class="btn btn-info mt-4" id="executeBtn" type="button">Measure Quad Response</button>
+                </div>
 
-        <div class="col-5 mt-3">
-            <div class="border p-3">
-                <label for="measurementId">Measurement UID:</label>
-                <div id="measurementId"></div>
+                <div class="col-5 mt-3">
+                    <div class="border p-3">
+                        <label for="measurementId">Measurement UID:</label>
+                        <div id="measurementId"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
+            <!-- New row for "Enter measurement ID," "Analyze" button, and dropdown list -->
+            <div class="row border p-3 mt-3">
+                <div class="col-4">
+                    <div class="">
+                        <label for="enterMeasurementID">Enter measurement ID:</label>
+                        <input class="form-control" id="enterMeasurementID" type="text">
+                    </div>
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-success mt-4" id="analyzeBtn" type="button">Analyze</button>
+                </div>
+                <div class="col-3">
+                    <div class="">
+                        <label for="magnets">Select Magnet:</label>
+                        <select class="form-select" id="magnets">
+                            <option value="Q3M1D6R">Q3M1D6R</option>
+                            <option value="Q5M1T5R">Q5M1T5R</option>
+                            <option value="Q1M2T1R">Q1M2T1R</option>
+                            <option value="Q5M2T3R">Q5M2T3R</option>
+                            <option value="Q1M1T1R">Q1M1T1R</option>
+                            <option value="Q5M2T1R">Q5M2T1R</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="">
+                        <label for="analyzeChart">Select Plot:</label>
+                        <select class="form-select" id="analyzeChart">
+                            <option value="magnet_offsets">Offsets of magnets</option>
+                            <option value="average_bpm_offsets">Average Bpm Offsets</option>
+                            <option value="average_and_individual_offsets">Offsets</option>
+                            <option value="Plot 2">BPM: measured vs fit</option>
+                            <option value="magnet_bpm_off">Bpm Offsets one magnet</option>
+                            <option value="analysis_per_bpm">Analysis: per magnet</option>
+                            <!-- Add more options as needed -->
+                        </select>
+                    </div>
+                </div>
+                <div id="plot" class="col-9"></div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                    <div id="chartDiv" style="border: 1px solid #dee2e6; padding: 10px; min-height: 300px;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- New row for "Enter measurement ID," "Analyze" button, and dropdown list -->
-    <div class="row border p-3 mt-3">
-        <div class="col-4">
-            <div class="">
-                <label for="enterMeasurementID">Enter measurement ID:</label>
-                <input class="form-control" id="enterMeasurementID" type="text">
-            </div>
-        </div>
-        <div class="col-2">
-            <button class="btn btn-success mt-4" id="analyzeBtn" type="button">Analyze</button>
-        </div>
-
-        <div class="col-3">
-            <div class="">
-                <label for="analyzeChart">Select Plot:</label>
-                <select class="form-select" id="analyzeChart">
-                    <option value="magnet_offsets">Offsets of magnets</option>
-                    <option value="Plot 2">Plot 2</option>
-                    <option value="Plot 3">Plot 3</option>
-                    <option value="Plot 4 STD">Plot 4 STD</option>
-                    <!-- Add more options as needed -->
-                </select>
-            </div>
-        </div>
-        <div id="plot" class="col-9"></div>
-    </div>
-
-    <div class="row mt-3">
-        <div class="col">
-            <div id="chartDiv" style="border: 1px solid #dee2e6; padding: 10px; min-height: 300px;"></div>
-        </div>
-    </div>
 </div>
 <script crossorigin="anonymous"
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
@@ -130,7 +160,7 @@
 
 
 <script>
-        // Function to handle the button click and make the POST request
+    // Function to handle the button click and make the POST request
     function measureQuadResponse() {
         const measurementFieldsDiv = document.getElementById("measurementFields");
         const innerFields = {};
@@ -157,22 +187,22 @@
             },
             body: JSON.stringify(innerFields)
         })
-        .then(response => response.json())
-        .then(data => {
-            // Handle the response data, if needed
-            console.log("Response from server:", data);
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response data, if needed
+                console.log("Response from server:", data);
 
-            // Display the returned measurement ID in the measurementId div
-            const measurementIdDiv = document.getElementById("measurementId");
-            measurementIdDiv.textContent = `${data.uids}`;
-            // Update the enterMeasurementID input field with the measurement ID
-            const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
-            enterMeasurementIDInput.value = data.uids;
-        })
-        .catch(error => {
-            // Handle any errors that occur during the request
-            console.error("Error:", error);
-        });
+                // Display the returned measurement ID in the measurementId div
+                const measurementIdDiv = document.getElementById("measurementId");
+                measurementIdDiv.textContent = `${data.uids}`;
+                // Update the enterMeasurementID input field with the measurement ID
+                const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+                enterMeasurementIDInput.value = data.uids;
+            })
+            .catch(error => {
+                // Handle any errors that occur during the request
+                console.error("Error:", error);
+            });
     }
 
     // Add event listener to the "Measure Quad Response" button
@@ -182,220 +212,441 @@
     document.getElementById("analyzeChart").addEventListener("change", function () {
         const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
         const selectedValue = this.value;
-        fetchDataAndRenderChart(selectedValue, enterMeasurementIDInput.value);
+        const magnetName = document.getElementById("magnets");
+        fetchDataAndRenderChart(selectedValue, enterMeasurementIDInput.value, magnetName.value);
+    });
+
+    document.getElementById("magnets").addEventListener("change", function () {
+        const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+        const magnetName  = this.value;
+        const chartDropDown = document.getElementById("analyzeChart");
+        fetchDataAndRenderChart(chartDropDown.value, enterMeasurementIDInput.value, magnetName);
     });
     // Function to render the chart based on the selected value
-    function renderChart(selectedValue, uid) {
-        fetchDataAndRenderChart(selectedValue, uid)
+    function renderChart(selectedValue, uid, magnetName) {
+        fetchDataAndRenderChart(selectedValue, uid, magnetName)
     }
-    // Function to fetch data from the API and render the chart
-    function fetchDataAndRenderChart(selectedValue, uid) {
-        if ( selectedValue == "magnet_offsets" ) {
-            fetch(`/estimatedangles/${uid}/`)
-                .then(response => response.json())
-                .then(data => {
-                    // print("printttttting")
-                    // Extract the necessary data from the fetched data
-                    const perMagnetData = data.per_magnet;
 
-                    // Extract x and y bpm_offsets for plotting
-                    const xOffsets = [];
-                    const yOffsets = [];
-                    const xOffsetErrors = [];
-                    const yOffsetErrors = [];
-                    const magnetNames = [];
-
-                    for (const magnetName in perMagnetData) {
-                        if (perMagnetData.hasOwnProperty(magnetName)) {
-                            const magnet = perMagnetData[magnetName];
-                            const xOffsetsData = magnet.x.offset;
-                            const yOffsetsData = magnet.y.offset;
-
-                            const pscale = 1000;
-                            if (xOffsetsData && yOffsetsData) {
-                                xOffsets.push(xOffsetsData.value * pscale);
-                                yOffsets.push(yOffsetsData.value * pscale);
-                                xOffsetErrors.push(xOffsetsData.std * pscale);
-                                yOffsetErrors.push(yOffsetsData.std * pscale);
-                                magnetNames.push(magnet.name); // Use the 'name' field
-                            }
-                        }
-                    }
-
-                    // Create traces for x and y bpm_offsets
-                    const xOffsetsTrace = {
-                        name: 'quad x offset',
-                        x: magnetNames,
-                        y: xOffsets,
-                        error_y: {
-                            type: 'data',
-                            array : xOffsetErrors,
-                            visible : true
-                        },
-                        type: 'scatter'
-                    };
-
-                    const yOffsetsTrace = {
-                        name: 'quad y offset',
-                        x: magnetNames,
-                        y: yOffsets,
-                        type: 'scatter',
-                        error_y: {
-                            type: 'data',
-                            array : yOffsetErrors,
-                            visible : true
-                        },
-                    };
-
-                    // Create the layout for the plot
-                    const layout = {
-                        title: 'BPM Offsets for X and Y Planes',
-                        xaxis: {title: 'Magnet Name'},
-                        yaxis: {title: 'Offset Value x,y [mm]'}
-                    };
-
-                    // Combine the traces
-                    const data1 = [xOffsetsTrace, yOffsetsTrace];
-
-                    // Create the plot
-                    Plotly.newPlot('plot', data1, layout);
-                })
-                .catch(error => {
-                    console.error("Error fetching data:", error);
-                });
-        }
-        else if (selectedValue == "Plot 2"){
+    let estimatedAnglesFetched = null; // Variable to store the fetched data
+    let fitReadyDataFetched = null
+    function fetchDataAndRenderChart(selectedValue, uid, magnetName) {
+        // Check if data is already fetched
+        if (estimatedAnglesFetched && fitReadyDataFetched) {
+            // Data is already fetched, manipulate and render chart based on selectedValue
+            renderChart(selectedValue, magnetName, fitReadyDataFetched,estimatedAnglesFetched);
+        } else {
+            // Data is not fetched, fetch it and store it for future use
             fetch(`/estimatedangles/${uid}/`)
             .then(response => response.json())
-            .then(data => {
-                // Extract the necessary data from the fetched data
-                const perMagnetData = data.per_magnet;
+                .then(data => {
+                    // Store the fetched data
+                    estimatedAnglesFetched = data;
+                })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+            fetch(`/fitreadydata/${uid}/`)
+            .then(response => response.json())
+                .then(data => {
+                    // Store the fetched data
+                    fitReadyDataFetched = data;
+                })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+                // Render the chart based on selectedValue
+            renderChart(selectedValue, magnetName, fitReadyDataFetched, estimatedAnglesFetched)
+        }
+    }
 
-                // Initialize arrays to store BPM names and scaled BPM offsets
-                const bpmNames = [];
-                const xBpmOffsetsScaled = [];
-                const yBpmOffsetsScaled = [];
+    // Function to fetch data from the API and render the chart
+    function renderChart(selectedValue, magnetName, fitReadyDataFetched, estimatedAnglesFetched) {
 
-                // Loop through each magnet data
-                for (const magnetName in perMagnetData) {
-                    if (perMagnetData.hasOwnProperty(magnetName)) {
-                        const magnet = perMagnetData[magnetName];
+        if (selectedValue == "magnet_offsets") {
+            // Extract the necessary data from the fetched data
+            const perMagnetData = estimatedAnglesFetched.per_magnet;
 
-                        // Extract BPM names and BPM offsets for x and y planes
-                        const bpmNamesX = Object.keys(magnet.x.bpm_offsets);
-                        const xBpmOffsets = bpmNamesX.map(bpmName => magnet.x.bpm_offsets[bpmName].value * 1000);
+            // Extract x and y bpm_offsets for plotting
+            const xOffsets = [];
+            const yOffsets = [];
+            const xOffsetErrors = [];
+            const yOffsetErrors = [];
+            const magnetNames = [];
 
-                        const bpmNamesY = Object.keys(magnet.y.bpm_offsets);
-                        const yBpmOffsets = bpmNamesY.map(bpmName => magnet.y.bpm_offsets[bpmName].value * 1000);
+            for (const magnetName in perMagnetData) {
+                if (perMagnetData.hasOwnProperty(magnetName)) {
+                    const magnet = perMagnetData[magnetName];
+                    const xOffsetsData = magnet.x.offset;
+                    const yOffsetsData = magnet.y.offset;
 
-                        // Append BPM names and scaled BPM offsets to the arrays
-                        bpmNames.push(...bpmNamesX);
-                        xBpmOffsetsScaled.push(...xBpmOffsets);
-                        yBpmOffsetsScaled.push(...yBpmOffsets);
+                    const pscale = 1000;
+                    if (xOffsetsData && yOffsetsData) {
+                        xOffsets.push(xOffsetsData.value * pscale);
+                        yOffsets.push(yOffsetsData.value * pscale);
+                        xOffsetErrors.push(xOffsetsData.std * pscale);
+                        yOffsetErrors.push(yOffsetsData.std * pscale);
+                        magnetNames.push(magnet.name); // Use the 'name' field
                     }
                 }
+            }
 
-                // Create traces for x and y BPM offsets
-                const xBpmOffsetsTrace = {
-                    x: bpmNames,
-                    y: xBpmOffsetsScaled,
-                    type: 'bar',
-                    name: 'X BPM Offsets (scaled)',
-                };
+            // Create traces for x and y bpm_offsets
+            const xOffsetsTrace = {
+                name: 'quad x offset',
+                x: magnetNames,
+                y: xOffsets,
+                error_y: {
+                    type: 'data',
+                    array: xOffsetErrors,
+                    visible: true
+                },
+                type: 'scatter'
+            };
 
-                const yBpmOffsetsTrace = {
-                    x: bpmNames,
-                    y: yBpmOffsetsScaled,
-                    type: 'bar',
-                    name: 'Y BPM Offsets (scaled)',
-                };
+            const yOffsetsTrace = {
+                name: 'quad y offset',
+                x: magnetNames,
+                y: yOffsets,
+                type: 'scatter',
+                error_y: {
+                    type: 'data',
+                    array: yOffsetErrors,
+                    visible: true
+                },
+            };
 
-                // Create the layout for the plot
-                const layout = {
-                    title: 'BPM Offsets for X and Y Planes (Scaled by 1000)',
-                    xaxis: { title: 'BPM Name' },
-                    yaxis: { title: 'Offset Value' },
-                    barmode: 'group', // To group the bars for each BPM
-                };
+            // Create the layout for the plot
+            const layout = {
+                title: 'BPM Offsets for X and Y Planes',
+                xaxis: {title: 'Magnet Name'},
+                yaxis: {title: 'Offset Value x,y [mm]'}
+            };
 
-                // Combine the traces
-                const data2 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
+            // Combine the traces
+            const data1 = [xOffsetsTrace, yOffsetsTrace];
 
-                // Create the plot
-                Plotly.newPlot('plot', data2, layout);
-            });
-        }
-        else if (selectedValue == "Plot 3"){
-            fetch(`/estimatedangles/${uid}/`)
-                .then(response => response.json())
-                .then(data => {
-                    // Extract the necessary data from the fetched data for the first magnet
-                    const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
+            // Create the plot
+            Plotly.newPlot('plot', data1, layout);
+        } else if (selectedValue === "average_bpm_offsets") {
+            // Extract the necessary data from the fetched data
+            const perMagnetData = estimatedAnglesFetched.per_magnet;
 
-                    // Extract BPM names and scaled BPM offsets for the x and y planes
-                    const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
-                    const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value * 1000);
+            // Initialize arrays to store average x and y BPM offsets for each BPM
+            const averageXBpmOffsets = {};
+            const averageYBpmOffsets = {};
 
-                    const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
-                    const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value * 1000);
+            // Loop through each magnet data and accumulate BPM offsets for each BPM
+            for (const magnetName in perMagnetData) {
+                if (perMagnetData.hasOwnProperty(magnetName)) {
+                    const magnet = perMagnetData[magnetName];
+                    const xBpmOffsetsData = magnet.x.bpm_offsets;
+                    const yBpmOffsetsData = magnet.y.bpm_offsets;
 
-                    // Create traces for x and y BPM offsets as separate lines
-                    const xBpmOffsetsTrace = {
-                        x: bpmNamesX,
-                        y: xBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'X BPM Offsets (scaled)',
-                        line: { color: 'orange' }, // Orange color
-                    };
+                    // Accumulate X BPM offsets for each BPM
+                    for (const bpmName in xBpmOffsetsData) {
+                        if (!averageXBpmOffsets[bpmName]) {
+                            averageXBpmOffsets[bpmName] = [];
+                        }
+                        averageXBpmOffsets[bpmName].push(xBpmOffsetsData[bpmName].value); // Multiply by 1000 to convert to mm
+                    }
 
-                    const yBpmOffsetsTrace = {
-                        x: bpmNamesY,
-                        y: yBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'Y BPM Offsets (scaled)',
-                        line: { color: 'blue' }, // Blue color
-                    };
+                    // Accumulate Y BPM offsets for each BPM
+                    for (const bpmName in yBpmOffsetsData) {
+                        if (!averageYBpmOffsets[bpmName]) {
+                            averageYBpmOffsets[bpmName] = [];
+                        }
+                        averageYBpmOffsets[bpmName].push(yBpmOffsetsData[bpmName].value); // Multiply by 1000 to convert to mm
+                    }
+                }
+            }
 
-                    // Create a trace for the red y line (multiplied by -1)
-                    const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
-                    const yRedBpmOffsetsTrace = {
-                        x: bpmNamesY,
-                        y: yRedBpmOffsets,
-                        mode: 'lines+markers',
-                        name: 'Y BPM Offsets (-1)',
-                        line: { color: 'red' }, // Red color
-                    };
+            function getStatisticalMomenta(array) {
+                const n = array.length
+                const mean = array.reduce((a, b) => a + b) / n
+                const std = Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n)
+                return [mean, std]
+            }
 
-                    // Create the layout for the plot
-                    const layout = {
-                        title: 'BPM Offsets for X and Y Planes (Scaled by 1000) - First Magnet Only',
-                        xaxis: { title: 'BPM Name' },
-                        yaxis: { title: 'Offset Value' },
-                    };
+            // Calculate average X and Y BPM offsets for each BPM
+            const bpmNames = Object.keys(averageXBpmOffsets);
+            const statsXBpmValues = bpmNames.map(bpmName => {
+                return getStatisticalMomenta(averageXBpmOffsets[bpmName])
+            })
+            const statsYBpmValues = bpmNames.map(bpmName => {
+                return getStatisticalMomenta(averageYBpmOffsets[bpmName])
+            })
+            const pscale = 1e3 // meter to milli meter
+            const paverageXBpmValues = statsXBpmValues.map((m) => m[0] * pscale)
+            const pstdXBpmValues = statsXBpmValues.map((m) => m[1] * pscale)
+            const paverageYBpmValues = statsYBpmValues.map((m) => m[0] * pscale)
+            const pstdYBpmValues = statsYBpmValues.map((m) => m[1] * pscale)
+            // Create traces for average X and Y BPM offsets
+            const averageXBpmOffsetTrace = {
+                x: bpmNames,
+                y: paverageXBpmValues,
+                error_y: {
+                    type: 'data',
+                    array: pstdXBpmValues,
+                    visible: true
+                },
+                type: 'scatter',
+                name: 'x: average  BPM offset [mm]',
+                marker: {color: 'blue'},
+            };
+            const averageYBpmOffsetTrace = {
+                x: bpmNames,
+                y: paverageYBpmValues,
+                error_y: {
+                    type: 'data',
+                    array: pstdYBpmValues,
+                    visible: true
+                },
+                type: 'scatter',
+                name: 'y: average BPM offset [mm]',
+                marker: {color: 'green'},
+            };
 
-                    // Combine the traces
-                    const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
+            // Create the layout for the plot
+            const layout = {
+                title: 'Average BPM Offsets for X and Y Planes (Grouped by BPM)',
+                xaxis: {title: 'BPM Name'},
+                yaxis: {title: 'Average Offset Value (mm)'}
+                // barmode: 'group', // To group the bars for each BPM
+            };
 
-                    // Create the plot
-                    Plotly.newPlot('plot', data3, layout);
-                });
-        }
-        else if (selectedValue == "Plot 4 STD"){
-        fetch(`/estimatedangles/${uid}/`)
-            .then(response => response.json())
-            .then(data => {
+            // Combine the traces
+            const datax = [averageXBpmOffsetTrace, averageYBpmOffsetTrace];
 
-            // Extract the necessary data from the fetched data for the first magnet
-            const firstMagnetData = data.per_magnet[Object.keys(data.per_magnet)[0]];
+            // Create the plot
+            Plotly.newPlot('plot', datax, layout);
+        } else if (selectedValue === "average_and_individual_offsets") {
+            // Extract the necessary data from the fetched data
+            const perMagnetData = estimatedAnglesFetched.per_magnet;
+
+            // Initialize arrays to store individual x and y offsets for all magnets
+            const xOffsets = [];
+            const yOffsets = [];
+            const magnetNames = [];
+
+            // Loop through each magnet data and calculate individual offsets
+            for (const magnetName in perMagnetData) {
+                if (perMagnetData.hasOwnProperty(magnetName)) {
+                    const magnet = perMagnetData[magnetName];
+                    const xOffsetsData = magnet.x.offset;
+                    const yOffsetsData = magnet.y.offset;
+
+                    const pscale = 1000;
+                    if (xOffsetsData && yOffsetsData) {
+                        const individualXOffset = xOffsetsData.value * pscale;
+                        const individualYOffset = yOffsetsData.value * pscale;
+                        xOffsets.push(individualXOffset);
+                        yOffsets.push(individualYOffset);
+                        magnetNames.push(magnet.name); // Use the 'name' field
+                    }
+                }
+            }
+
+            // Calculate average offsets for x and y planes
+            const averageXOffset = xOffsets.reduce((acc, curr) => acc + curr, 0) / xOffsets.length;
+            const averageYOffset = yOffsets.reduce((acc, curr) => acc + curr, 0) / yOffsets.length;
+
+            // Create traces for individual x and y offsets as grouped bar charts
+            const xOffsetsTrace = {
+                x: magnetNames,
+                y: xOffsets,
+                type: 'bar',
+                name: 'Individual X Offsets (mm)',
+                marker: {color: 'blue'},
+            };
+
+            const yOffsetsTrace = {
+                x: magnetNames,
+                y: yOffsets,
+                type: 'bar',
+                name: 'Individual Y Offsets (mm)',
+                marker: {color: 'orange'},
+            };
+
+            // Create traces for average x and y offsets as lines
+            const averageXOffsetTrace = {
+                x: magnetNames,
+                y: Array(magnetNames.length).fill(averageXOffset),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Average X Offset (mm)',
+                line: {color: 'green', width: 3},
+            };
+
+            const averageYOffsetTrace = {
+                x: magnetNames,
+                y: Array(magnetNames.length).fill(averageYOffset),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Average Y Offset (mm)',
+                line: {color: 'red', width: 3},
+            };
+
+            // Create the layout for the plot
+            const layout = {
+                title: 'Average and Individual BPM Offsets for X and Y Planes',
+                xaxis: {title: 'Magnet Name'},
+                yaxis: {title: 'Offset Value (mm)'},
+                barmode: 'group', // To group the bars for each magnet
+            };
+
+            // Combine the traces
+            const datax = [xOffsetsTrace, yOffsetsTrace, averageXOffsetTrace, averageYOffsetTrace];
+
+            // Create the plot
+            Plotly.newPlot('plot', datax, layout);
+        } else if (selectedValue == "Plot 2") {
+            //
+            const fitReadyPerMagnetData = Object.values(fitReadyDataFetched).find(magnet => magnet.name === magnetName);
+            // loop over excitations ...
+            const idx = 3
+            const excitation = fitReadyPerMagnetData['excitations'][idx] // current applied to the magnet
+            const step = fitReadyPerMagnetData['steps'][idx] // so that one can see if that"s start or end data
+            const bpmReadingX = fitReadyPerMagnetData['x'][idx]['data']
+            const bpmReadingY = fitReadyPerMagnetData['y'][idx]['data']
+
+            // subtract the measured (physics ready) bpm offsets from the fit ready data
+            const bpmNamesX = Object.keys(bpmReadingX);
+            const effectOfExcitationX = bpmNamesX.map(bpmName => bpmReadingX[bpmName].value)
+            const effectOfExcitationXRms = bpmNamesX.map(bpmName => bpmReadingX[bpmName].rms)
+            const effectOfExcitationY = bpmNamesX.map(bpmName => bpmReadingY[bpmName].value)
+            const effectOfExcitationYRms = bpmNamesX.map(bpmName => bpmReadingY[bpmName].rms)
+
+            // Extract the necessary data from the fetched estimated angles data
+            // these are constant for all excitations
+            const analyzedPerMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
+            const xEquivalentAngle = analyzedPerMagnet['x']['equivalent_angle']['value']
+            const yEquivalentAngle = analyzedPerMagnet['y']['equivalent_angle']['value']
+            const xEquivalentAngleStd = analyzedPerMagnet['x']['equivalent_angle']['std']
+            const yEquivalentAngleStd = analyzedPerMagnet['y']['equivalent_angle']['std']
+            const xKickStrength = analyzedPerMagnet['x']['orbit']['kick_strength']
+            const yKickStrength = analyzedPerMagnet['y']['orbit']['kick_strength']
+
+            const xOrbit = analyzedPerMagnet['x']['orbit']['delta']
+            const yOrbit = analyzedPerMagnet['y']['orbit']['delta']
+            const xOrbitAtBpm = bpmNamesX.map(bpmName => xOrbit[bpmName]);
+            const yOrbitAtBpm = bpmNamesX.map(bpmName => yOrbit[bpmName]);
+            const xBpmOffsets = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].value);
+            const yBpmOffsets = bpmNamesX.map(bpmName => analyzedPerMagnet.y.bpm_offsets[bpmName].value);
+            const xBpmOffsetsStd = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].std);
+            const yBpmOffsetsStd = bpmNamesX.map(bpmName => analyzedPerMagnet.y.bpm_offsets[bpmName].std);
+
+            const xOrbitScale = excitation / xKickStrength
+            const yOrbitScale = excitation / yKickStrength
+            const xExpectedDiff = xOrbitAtBpm.map(v => v * xOrbitScale * xEquivalentAngle)
+            const xExpectedDiffStd = xOrbitAtBpm.map(v => v * xOrbitScale * Math.abs(xEquivalentAngleStd))
+
+            const diffX = effectOfExcitationX.map((valueA, indexInA) => valueA - xBpmOffsets[indexInA])
+            const diffY = effectOfExcitationY.map((valueA, indexInA) => valueA - yBpmOffsets[indexInA])
+
+            const diffXErrBar = effectOfExcitationXRms.map((valueA, indexInA) => valueA + xBpmOffsetsStd[indexInA])
+            const diffYErrBar = effectOfExcitationYRms.map((valueA, indexInA) => valueA + yBpmOffsetsStd[indexInA])
+
+            // create the data for the fit estimate
+
+            console.log( step , excitation, xEquivalentAngle )
+            // Create traces for x and y BPM offsets as separate lines
+            const label = '(step: ' + step + 'dI: ' + excitation + ')'
+            console.log("label", label)
+            const xDiffLine = {
+                // should be substituted by s (longitudinal length)
+                x: bpmNamesX,
+                y: diffX,
+                mode: 'lines+markers',
+                name: 'x: bpm measured - fit [m] ' + label,
+                type: 'scatter',
+                // should automatically select a different color for each excitation
+                line: {color: 'orange'},
+            };
+
+            const xExpectedDiffLine = {
+                x: bpmNamesX,
+                y: xExpectedDiff,
+                mode: 'lines+markers',
+                name: 'x: equivalent kick [m] ' + label,
+                type: 'scatter',
+                // the color here should match to the one of the corresponding xDiffline
+                line: {color: 'blue'},
+            };
+
+            const layout = {
+                title: magnetName + ': effect of excitations',
+                xaxis: {title: 'bpm names'},
+                yaxis: {title: 'bpm offset diff: measured - fit'},
+                barmode: 'group', // To group the bars for each magnet
+            };
+            // Combine the traces
+            const data2 = [xDiffLine, xExpectedDiffLine];
+
+            // Create the plot
+            Plotly.newPlot('plot', data2, layout);
+        } else if (selectedValue == "magnet_bpm_off") {
+            console.log("here", estimatedAnglesFetched)
+            const selectedMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
 
             // Extract BPM names and scaled BPM offsets for the x and y planes
-            const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
-            const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value / 1000);
-            const xOffset = firstMagnetData.x.offset.value / 1000; // Scale by 1000
+            const bpmNamesX = Object.keys(selectedMagnet.x.bpm_offsets);
+            const xBpmOffsets = bpmNamesX.map(bpmName => selectedMagnet.x.bpm_offsets[bpmName].value * 1000);
 
+            const bpmNamesY = Object.keys(selectedMagnet.y.bpm_offsets);
+            const yBpmOffsets = bpmNamesY.map(bpmName => selectedMagnet.y.bpm_offsets[bpmName].value * 1000);
+
+            // Create traces for x and y BPM offsets as separate lines
+            const xBpmOffsetsTrace = {
+                x: bpmNamesX,
+                y: xBpmOffsets,
+                mode: 'lines+markers',
+                name: 'x: BPM offsets [mm]',
+                line: {color: 'orange'}, // Orange color
+            };
+
+            const yBpmOffsetsTrace = {
+                x: bpmNamesY,
+                y: yBpmOffsets,
+                mode: 'lines+markers',
+                name: 'y: BPM offsets [mm]',
+                line: {color: 'blue'}, // Blue color1.1784783720862578e-11
+            };
+
+            // Create a trace for the red y line (multiplied by -1)
+            const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
+            const yRedBpmOffsetsTrace = {
+                x: bpmNamesY,
+                y: yRedBpmOffsets,
+                mode: 'lines+markers',
+                name: 'Y BPM Offsets (-1)',
+                line: {color: 'red'}, // Red color
+            };
+            // Create the layout for the plot
+            const layout = {
+                title: 'BPM Offsets for X and Y Planes ' + magnetName,
+                xaxis: {title: 'BPM Name'},
+                yaxis: {title: 'Offset Value'},
+            };
+
+            // Combine the traces
+            const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
+
+            // Create the plot
+            Plotly.newPlot('plot', data3, layout);
+        } else if (selectedValue == "analysis_per_bpm") {
+            const m2mm = 1000
+            // Extract the necessary data from the fetched data for the first magnet
+            const firstMagnetData = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName)
+
+            // Extract BPM names and scaled BPM offsets for the x and y planes (from fit)
+            const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
+            const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value);
             const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
-            const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value / 1000);
-            const yOffset = firstMagnetData.y.offset.value / 1000; // Scale by 1000
+            const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value);
+
+
+            const yOffset = firstMagnetData.y.offset.value; // Scale by 1000
+            const xOffset = firstMagnetData.x.offset.value; // Scale by 1000
 
             // Create traces for x and y BPM offsets as separate lines
             const xBpmOffsetsTrace = {
@@ -403,7 +654,7 @@
                 y: xBpmOffsets,
                 mode: 'lines+markers',
                 name: 'X BPM Offsets (scaled)',
-                line: { color: 'orange' }, // Orange color
+                line: {color: 'orange'}, // Orange color
             };
 
             const yBpmOffsetsTrace = {
@@ -411,39 +662,21 @@
                 y: yBpmOffsets,
                 mode: 'lines+markers',
                 name: 'Y BPM Offsets (scaled)',
-                line: { color: 'blue' }, // Blue color
-            };
-
-            // Create traces for x and y offsets
-            const xOffsetTrace = {
-                x: ['X Offset'],
-                y: [xOffset],
-                type: 'bar',
-                name: 'X Offset (scaled)',
-                marker: { color: 'green' }, // Green color for bar
-            };
-
-            const yOffsetTrace = {
-                x: ['Y Offset'],
-                y: [yOffset],
-                type: 'bar',
-                name: 'Y Offset (scaled)',
-                marker: { color: 'red' }, // Red color for bar
+                line: {color: 'blue'}, // Blue color
             };
 
             // Create the layout for the plot
             const layout = {
-                title: 'BPM Offsets and X, Y Offsets (Scaled by 1000) - First Magnet Only',
-                xaxis: { title: 'BPM Name / Offset Type' },
-                yaxis: { title: 'Offset Value' },
+                title: 'BPM Offsets and X, Y Offsets: ' + magnetName,
+                xaxis: {title: 'BPM Name / Offset Type'},
+                yaxis: {title: 'Offset Value'},
             };
 
-                // Combine the traces
-                const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, xOffsetTrace, yOffsetTrace];
+            // Combine the traces
+            const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
 
-                // Create the plot
-                Plotly.newPlot('plot', data3, layout);
-            });
+            // Create the plot
+            Plotly.newPlot('plot', data3, layout);
         }
     }
 
@@ -451,8 +684,9 @@
     document.getElementById("analyzeBtn").addEventListener("click", function () {
         const selectedChart = document.getElementById("analyzeChart").value;
         const enterMeasurementIDInput = document.getElementById("enterMeasurementID");
+        const magnetName = document.getElementById("magnets");
         const uid = enterMeasurementIDInput.value;
-        fetchDataAndRenderChart(selectedChart, uid);
+        fetchDataAndRenderChart(selectedChart, uid, magnetName.value);
     });
 
     // todo: temp

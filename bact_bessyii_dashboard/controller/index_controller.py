@@ -58,6 +58,24 @@ async def get_preprocessed_measurement(uid: str):
     # If measurement not found, return a 404 response
     return JSONResponse(status_code=404, content={"message": "Measurement not found"})
 
+
+
+@router.get("/fitreadydata/{uid}/", response_description="Get bpm raw data for a specific uid")
+async def get_preprocessed_measurement(uid: str):
+    fit_ready_data_collection = db["fitreadydata"]
+    # Perform the findOne query
+    fit_ready_data = fit_ready_data_collection.find_one({"uid": uid})
+
+    # Check if the measurement was found
+    if fit_ready_data:
+        # Remove the 'uid' field from the measurement dictionary
+        fit_ready_data.pop('uid', None)
+        fit_ready_data.pop('_id', None)
+        # Return the measurement as JSON response
+        # return JSONResponse(content=preprocessed_measurement)
+        return fit_ready_data['per_magnet']
+    # If measurement not found, return a 404 response
+    return JSONResponse(status_code=404, content={"message": "fit ready data not found"})
 @router.post('/measurements/', response_model=dict)
 async def add_measurement(data: dict):
     #extract the input from post service

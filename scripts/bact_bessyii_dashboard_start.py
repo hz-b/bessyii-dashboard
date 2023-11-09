@@ -13,7 +13,8 @@ import os
 os.chdir(_pkg_files.joinpath("."))
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory=_pkg_files.joinpath(".")), name="static")
+static_path = _pkg_files.joinpath("static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory=_pkg_files.joinpath("templates"))
 
 @app.on_event("startup")

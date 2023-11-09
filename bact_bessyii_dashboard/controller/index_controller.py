@@ -23,8 +23,6 @@ router = APIRouter()
 client = MongoClient("mongodb://127.0.0.1:27017/")  # Replace with your MongoDB connection string
 db = client["bessyii"]  # Replace "mydatabase" with your desired database name
 measurement_collection = db["measurements"]  # Collection to store the measurement_config
-
-router = APIRouter()
 #: todo needs clean up of import
 import bact_bessyii_dashboard
 templates = Jinja2Templates(directory=_pkg_files.joinpath("templates"))

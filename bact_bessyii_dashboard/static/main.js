@@ -47,48 +47,6 @@
   
   function loadMainJS() {
     document.addEventListener("DOMContentLoaded", function() {
-      // Function to render the initial chart
-      function renderInitialChart() {
-        const trace = {
-          x: [1, 2, 3, 4, 5],
-          y: [0, 0, 0, 0, 0],
-          type: "scatter"
-        };
-        const layout = {
-          title: "Initial Chart",
-          xaxis: {
-            title: "X-axis"
-          },
-          yaxis: {
-            title: "Y-axis"
-          }
-        };
-        const data = [trace];
-        Plotly.newPlot("chartDiv", data, layout);
-      }
-  
-      // Function to render the chart based on the selected value
-      function renderChart(selectedValue) {
-        // Replace this with your actual chart rendering logic using Plotly
-        // Example chart rendering code:
-        const trace = {
-          x: [1, 2, 3, 4, 5],
-          y: [selectedValue === "Blue Item 1" ? 10 : 5, 8, 6, 4, 2],
-          type: "scatter"
-        };
-        const layout = {
-          title: `Chart for ${selectedValue}`,
-          xaxis: {
-            title: "X-axis"
-          },
-          yaxis: {
-            title: "Y-axis"
-          }
-        };
-        const data = [trace];
-        Plotly.newPlot("chartDiv", data, layout);
-      }
-  
       // Load the Plotly library dynamically
       function loadPlotlyLibrary() {
         const plotlyScript = document.createElement("script");

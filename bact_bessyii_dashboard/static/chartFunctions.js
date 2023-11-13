@@ -65,7 +65,7 @@
             const data1 = [xOffsetsTrace, yOffsetsTrace];
 
             // Create the plot
-            Plotly.newPlot('plot', data1, layout);
+            Plotly.newPlot('plot1', data1, layout);
         } else if (selectedValue === "average_bpm_offsets") {
             // Extract the necessary data from the fetched data
             const perMagnetData = estimatedAnglesFetched.per_magnet;
@@ -157,7 +157,7 @@
             const datax = [averageXBpmOffsetTrace, averageYBpmOffsetTrace];
 
             // Create the plot
-            Plotly.newPlot('plot', datax, layout);
+            Plotly.newPlot('plot1', datax, layout);
         } else if (selectedValue === "average_and_individual_offsets") {
             // Extract the necessary data from the fetched data
             const perMagnetData = estimatedAnglesFetched.per_magnet;
@@ -237,14 +237,17 @@
             const datax = [xOffsetsTrace, yOffsetsTrace, averageXOffsetTrace, averageYOffsetTrace];
 
             // Create the plot
-            Plotly.newPlot('plot', datax, layout);
+            Plotly.newPlot('plot1', datax, layout);
         } else if (selectedValue == "Plot 2") {
             //
             const fitReadyPerMagnetData = Object.values(fitReadyDataFetched).find(magnet => magnet.name === magnetName);
             // loop over excitations ...
             const indices = Array.from({ length: 10 }, (_, i) => i);
             // Initialize an empty array to store traces
-            const traces = [];
+            const tracesX = [];
+            const tracesY = [];
+            const tracesXDiff = [];
+            const tracesYDiff = [];
             indices.forEach(idx => {
                 const excitation = fitReadyPerMagnetData['excitations'][idx] // current applied to the magnet
                 const step = fitReadyPerMagnetData['steps'][idx] // so that one can see if that"s start or end data
@@ -253,10 +256,11 @@
 
                 // subtract the measured (physics ready) bpm offsets from the fit ready data
                 const bpmNamesX = Object.keys(bpmReadingX);
+                const bpmNamesY = Object.keys(bpmReadingY);
                 const effectOfExcitationX = bpmNamesX.map(bpmName => bpmReadingX[bpmName].value)
                 const effectOfExcitationXRms = bpmNamesX.map(bpmName => bpmReadingX[bpmName].rms)
-                const effectOfExcitationY = bpmNamesX.map(bpmName => bpmReadingY[bpmName].value)
-                const effectOfExcitationYRms = bpmNamesX.map(bpmName => bpmReadingY[bpmName].rms)
+                const effectOfExcitationY = bpmNamesY.map(bpmName => bpmReadingY[bpmName].value)
+                const effectOfExcitationYRms = bpmNamesY.map(bpmName => bpmReadingY[bpmName].rms)
 
                 // Extract the necessary data from the fetched estimated angles data
                 // these are constant for all excitations
@@ -281,12 +285,138 @@
                 const yOrbitScale = excitation / yKickStrength
                 const xExpectedDiff = xOrbitAtBpm.map(v => v * xOrbitScale * xEquivalentAngle)
                 const xExpectedDiffStd = xOrbitAtBpm.map(v => v * xOrbitScale * Math.abs(xEquivalentAngleStd))
+                const yExpectedDiff = yOrbitAtBpm.map(v => v * yOrbitScale * yEquivalentAngle)
+                const yExpectedDiffStd = yOrbitAtBpm.map(v => v * yOrbitScale * Math.abs(yEquivalentAngleStd))
 
                 const diffX = effectOfExcitationX.map((valueA, indexInA) => valueA - xBpmOffsets[indexInA])
                 const diffY = effectOfExcitationY.map((valueA, indexInA) => valueA - yBpmOffsets[indexInA])
 
                 const diffXErrBar = effectOfExcitationXRms.map((valueA, indexInA) => valueA + xBpmOffsetsStd[indexInA])
                 const diffYErrBar = effectOfExcitationYRms.map((valueA, indexInA) => valueA + yBpmOffsetsStd[indexInA])
+
+                // Calculate xDifference and yDifference
+                const xDifference = diffX.map((value, index) => value - xExpectedDiff[index]);
+                const yDifference = diffY.map((value, index) => value - yExpectedDiff[index]);
+
+                // create the data for the fit estimate
+
+                console.log( step , excitation, xEquivalentAngle )
+                // Create traces for x and y BPM offsets as separate lines
+                const label = '(step: ' + step + 'dI: ' + excitation + ')'
+                console.log("label", label)
+                const xDiffLine = {
+                    // should be substituted by s (longitudinal length)
+                    x: bpmNamesX,
+                    y: diffX,
+                    mode: 'lines+markers',
+                    name: 'x: bpm measured - fit [m] ' + label,
+                    type: 'scatter',
+                    // should automatically select a different color for each excitation
+                    line: {color: 'orange'},
+                };
+
+                const xExpectedDiffLine = {
+                    x: bpmNamesX,
+                    y: xExpectedDiff,
+                    mode: 'lines+markers',
+                    name: 'x: equivalent kick [m] ' + label,
+                    type: 'scatter',
+                    // the color here should match to the one of the corresponding xDiffline
+                    line: {color: 'blue'},
+                };
+                const xDifferenceExpectedActual = {
+                    x: bpmNamesX,
+                    y: xDifference,
+                    mode: 'lines+markers',
+                    name: 'x: difference actual vs expected [m] ' + label,
+                    type: 'scatter',
+                    // the color here should match to the one of the corresponding xDiffline
+                    line: {color: 'blue'},
+                };
+                const yDiffLine = {
+                    // should be substituted by s (longitudinal length)
+                    x: bpmNamesY,
+                    y: diffY,
+                    mode: 'lines+markers',
+                    name: 'y: bpm measured - fit [m] ' + label,
+                    type: 'scatter',
+                    // should automatically select a different color for each excitation
+                    line: {color: 'orange'},
+                };
+
+                const yExpectedDiffLine = {
+                    x: bpmNamesY,
+                    y: yExpectedDiff,
+                    mode: 'lines+markers',
+                    name: 'y: equivalent kick [m] ' + label,
+                    type: 'scatter',
+                    // the color here should match to the one of the corresponding xDiffline
+                    line: {color: 'blue'},
+                };
+
+                const yDifferenceExpectedActual = {
+                    x: bpmNamesY,
+                    y: yDifference,
+                    mode: 'lines+markers',
+                    name: 'y: difference actual vs expected [m] ' + label,
+                    type: 'scatter',
+                    // the color here should match to the one of the corresponding xDiffline
+                    line: {color: 'blue'},
+                };
+
+                // Push the traces to the traces array
+                tracesX.push(xDiffLine, xExpectedDiffLine);
+                tracesY.push(yDiffLine, yExpectedDiffLine);
+                tracesXDiff.push(xDifferenceExpectedActual)
+                tracesYDiff.push(yDifferenceExpectedActual)
+            });
+            const layout = {
+                title: magnetName + ': effect of excitations',
+                xaxis: {title: 'bpm names'},
+                yaxis: {title: 'bpm offset diff: measured - fit'},
+                barmode: 'group', // To group the bars for each magnet
+            };
+            // Create the plot
+            Plotly.newPlot('plot1', tracesX, layout);
+            Plotly.newPlot('plot2', tracesXDiff, layout);
+            Plotly.newPlot('plot3', tracesY, layout);
+            Plotly.newPlot('plot4', tracesYDiff, layout);
+        } else if (selectedValue == "Plot 2-d") {
+            //
+            const fitReadyPerMagnetData = Object.values(fitReadyDataFetched).find(magnet => magnet.name === magnetName);
+            // loop over excitations ...
+            const indices = Array.from({ length: 10 }, (_, i) => i);
+            // Initialize an empty array to store traces
+            const traces = [];
+            indices.forEach(idx => {
+                const excitation = fitReadyPerMagnetData['excitations'][idx] // current applied to the magnet
+                const step = fitReadyPerMagnetData['steps'][idx] // so that one can see if that"s start or end data
+                const bpmReadingX = fitReadyPerMagnetData['x'][idx]['data']
+
+                // subtract the measured (physics ready) bpm offsets from the fit ready data
+                const bpmNamesX = Object.keys(bpmReadingX);
+                const effectOfExcitationX = bpmNamesX.map(bpmName => bpmReadingX[bpmName].value)
+                const effectOfExcitationXRms = bpmNamesX.map(bpmName => bpmReadingX[bpmName].rms)
+
+                // Extract the necessary data from the fetched estimated angles data
+                // these are constant for all excitations
+                const analyzedPerMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
+                const xEquivalentAngle = analyzedPerMagnet['x']['equivalent_angle']['value']
+                const xEquivalentAngleStd = analyzedPerMagnet['x']['equivalent_angle']['std']
+                const xKickStrength = analyzedPerMagnet['x']['orbit']['kick_strength']
+
+                const xOrbit = analyzedPerMagnet['x']['orbit']['delta']
+                const xOrbitAtBpm = bpmNamesX.map(bpmName => xOrbit[bpmName]);
+                const xBpmOffsets = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].value);
+                const xBpmOffsetsStd = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].std);
+
+                const xOrbitScale = excitation / xKickStrength
+                const xExpectedDiff = xOrbitAtBpm.map(v => v * xOrbitScale * xEquivalentAngle)
+                const xExpectedDiffStd = xOrbitAtBpm.map(v => v * xOrbitScale * Math.abs(xEquivalentAngleStd))
+
+                const diffX = effectOfExcitationX.map((valueA, indexInA) => valueA - xBpmOffsets[indexInA])
+
+                const diffXErrBar = effectOfExcitationXRms.map((valueA, indexInA) => valueA + xBpmOffsetsStd[indexInA])
 
                 // create the data for the fit estimate
 
@@ -325,7 +455,7 @@
                 barmode: 'group', // To group the bars for each magnet
             };
             // Create the plot
-            Plotly.newPlot('plot', traces, layout);
+            Plotly.newPlot('plot1', traces, layout);
         } else if (selectedValue == "magnet_bpm_off") {
             console.log("here", estimatedAnglesFetched)
             const selectedMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
@@ -374,7 +504,7 @@
             const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
 
             // Create the plot
-            Plotly.newPlot('plot', data3, layout);
+            Plotly.newPlot('plot1', data3, layout);
         } else if (selectedValue == "analysis_per_bpm") {
             const m2mm = 1000
             // Extract the necessary data from the fetched data for the first magnet
@@ -418,6 +548,6 @@
             const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
 
             // Create the plot
-            Plotly.newPlot('plot', data3, layout);
+            Plotly.newPlot('plot1', data3, layout);
         }
     }

@@ -55,20 +55,15 @@
             };
 
             // Create the layout for the plot
-            const layout = {
+            const layout_plot_1 = {
                 title: 'BPM Offsets for X and Y Planes',
                 xaxis: {title: 'Magnet Name'},
                 yaxis: {title: 'Offset Value x,y [mm]'}
             };
 
             // Combine the traces
-            const data1 = [xOffsetsTrace, yOffsetsTrace];
+            const data_plot_1 = [xOffsetsTrace, yOffsetsTrace];
 
-            // Create the plot
-            Plotly.newPlot('plot1', data1, layout);
-        } else if (selectedValue === "average_bpm_offsets") {
-            // Extract the necessary data from the fetched data
-            const perMagnetData = estimatedAnglesFetched.per_magnet;
 
             // Initialize arrays to store average x and y BPM offsets for each BPM
             const averageXBpmOffsets = {};
@@ -146,26 +141,21 @@
             };
 
             // Create the layout for the plot
-            const layout = {
+            const layout_plot_2 = {
                 title: 'Average BPM Offsets for X and Y Planes (Grouped by BPM)',
                 xaxis: {title: 'BPM Name'},
                 yaxis: {title: 'Average Offset Value (mm)'}
                 // barmode: 'group', // To group the bars for each BPM
             };
-
             // Combine the traces
-            const datax = [averageXBpmOffsetTrace, averageYBpmOffsetTrace];
+            const data_plot_2 = [averageXBpmOffsetTrace, averageYBpmOffsetTrace];
 
-            // Create the plot
-            Plotly.newPlot('plot1', datax, layout);
-        } else if (selectedValue === "average_and_individual_offsets") {
-            // Extract the necessary data from the fetched data
-            const perMagnetData = estimatedAnglesFetched.per_magnet;
+
 
             // Initialize arrays to store individual x and y offsets for all magnets
-            const xOffsets = [];
-            const yOffsets = [];
-            const magnetNames = [];
+            const offsetsX = [];
+            const offsetsY = [];
+            const magnetNames_ = [];
 
             // Loop through each magnet data and calculate individual offsets
             for (const magnetName in perMagnetData) {
@@ -178,9 +168,9 @@
                     if (xOffsetsData && yOffsetsData) {
                         const individualXOffset = xOffsetsData.value * pscale;
                         const individualYOffset = yOffsetsData.value * pscale;
-                        xOffsets.push(individualXOffset);
-                        yOffsets.push(individualYOffset);
-                        magnetNames.push(magnet.name); // Use the 'name' field
+                        offsetsX.push(individualXOffset);
+                        offsetsY.push(individualYOffset);
+                        magnetNames_.push(magnet.name); // Use the 'name' field
                     }
                 }
             }
@@ -190,16 +180,16 @@
             const averageYOffset = yOffsets.reduce((acc, curr) => acc + curr, 0) / yOffsets.length;
 
             // Create traces for individual x and y offsets as grouped bar charts
-            const xOffsetsTrace = {
-                x: magnetNames,
+            const offsetsTraceX = {
+                x: magnetNames_,
                 y: xOffsets,
                 type: 'bar',
                 name: 'Individual X Offsets (mm)',
                 marker: {color: 'blue'},
             };
 
-            const yOffsetsTrace = {
-                x: magnetNames,
+            const offsetsTraceY = {
+                x: magnetNames_,
                 y: yOffsets,
                 type: 'bar',
                 name: 'Individual Y Offsets (mm)',
@@ -208,7 +198,7 @@
 
             // Create traces for average x and y offsets as lines
             const averageXOffsetTrace = {
-                x: magnetNames,
+                x: magnetNames_,
                 y: Array(magnetNames.length).fill(averageXOffset),
                 type: 'scatter',
                 mode: 'lines',
@@ -217,8 +207,8 @@
             };
 
             const averageYOffsetTrace = {
-                x: magnetNames,
-                y: Array(magnetNames.length).fill(averageYOffset),
+                x: magnetNames_,
+                y: Array(magnetNames_.length).fill(averageYOffset),
                 type: 'scatter',
                 mode: 'lines',
                 name: 'Average Y Offset (mm)',
@@ -226,7 +216,7 @@
             };
 
             // Create the layout for the plot
-            const layout = {
+            const layout_plot_3 = {
                 title: 'Average and Individual BPM Offsets for X and Y Planes',
                 xaxis: {title: 'Magnet Name'},
                 yaxis: {title: 'Offset Value (mm)'},
@@ -234,11 +224,55 @@
             };
 
             // Combine the traces
-            const datax = [xOffsetsTrace, yOffsetsTrace, averageXOffsetTrace, averageYOffsetTrace];
+            const data_plot_3 = [offsetsTraceX, offsetsTraceY, averageXOffsetTrace, averageYOffsetTrace];
 
+                        const m2mm = 1000
+            // Extract the necessary data from the fetched data for the first magnet
+            const firstMagnetData = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName)
+
+            // Extract BPM names and scaled BPM offsets for the x and y planes (from fit)
+            const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
+            const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value);
+            const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
+            const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value);
+
+
+            const yOffset = firstMagnetData.y.offset.value; // Scale by 1000
+            const xOffset = firstMagnetData.x.offset.value; // Scale by 1000
+
+            // Create traces for x and y BPM offsets as separate lines
+            const xBpmOffsetsTrace = {
+                x: bpmNamesX,
+                y: xBpmOffsets,
+                mode: 'lines+markers',
+                name: 'X BPM Offsets (scaled)',
+                line: {color: 'orange'}, // Orange color
+            };
+
+            const yBpmOffsetsTrace = {
+                x: bpmNamesY,
+                y: yBpmOffsets,
+                mode: 'lines+markers',
+                name: 'Y BPM Offsets (scaled)',
+                line: {color: 'blue'}, // Blue color
+            };
+
+            // Create the layout for the plot
+            const layout_plot_4 = {
+                title: 'BPM Offsets and X, Y Offsets: ' + magnetName,
+                xaxis: {title: 'BPM Name / Offset Type'},
+                yaxis: {title: 'Offset Value'},
+            };
+
+            // Combine the traces
+            const data_plot_4 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
             // Create the plot
-            Plotly.newPlot('plot1', datax, layout);
-        } else if (selectedValue == "Plot 2") {
+            Plotly.newPlot('plot1', data_plot_1, layout_plot_1);
+            Plotly.newPlot('plot2', data_plot_2, layout_plot_2);
+            Plotly.newPlot('plot3', data_plot_3, layout_plot_3);
+            Plotly.newPlot('plot4', data_plot_4, layout_plot_4);
+        }
+        else if (selectedValue == "Plot 2") {
             //
             const fitReadyPerMagnetData = Object.values(fitReadyDataFetched).find(magnet => magnet.name === magnetName);
             // loop over excitations ...
@@ -376,178 +410,44 @@
                 yaxis: {title: 'bpm offset diff: measured - fit'},
                 barmode: 'group', // To group the bars for each magnet
             };
-            // Create the plot
-            Plotly.newPlot('plot1', tracesX, layout);
-            Plotly.newPlot('plot2', tracesXDiff, layout);
-            Plotly.newPlot('plot3', tracesY, layout);
-            Plotly.newPlot('plot4', tracesYDiff, layout);
-        } else if (selectedValue == "Plot 2-d") {
-            //
-            const fitReadyPerMagnetData = Object.values(fitReadyDataFetched).find(magnet => magnet.name === magnetName);
-            // loop over excitations ...
-            const indices = Array.from({ length: 10 }, (_, i) => i);
-            // Initialize an empty array to store traces
-            const traces = [];
-            indices.forEach(idx => {
-                const excitation = fitReadyPerMagnetData['excitations'][idx] // current applied to the magnet
-                const step = fitReadyPerMagnetData['steps'][idx] // so that one can see if that"s start or end data
-                const bpmReadingX = fitReadyPerMagnetData['x'][idx]['data']
 
-                // subtract the measured (physics ready) bpm offsets from the fit ready data
-                const bpmNamesX = Object.keys(bpmReadingX);
-                const effectOfExcitationX = bpmNamesX.map(bpmName => bpmReadingX[bpmName].value)
-                const effectOfExcitationXRms = bpmNamesX.map(bpmName => bpmReadingX[bpmName].rms)
-
-                // Extract the necessary data from the fetched estimated angles data
-                // these are constant for all excitations
-                const analyzedPerMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
-                const xEquivalentAngle = analyzedPerMagnet['x']['equivalent_angle']['value']
-                const xEquivalentAngleStd = analyzedPerMagnet['x']['equivalent_angle']['std']
-                const xKickStrength = analyzedPerMagnet['x']['orbit']['kick_strength']
-
-                const xOrbit = analyzedPerMagnet['x']['orbit']['delta']
-                const xOrbitAtBpm = bpmNamesX.map(bpmName => xOrbit[bpmName]);
-                const xBpmOffsets = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].value);
-                const xBpmOffsetsStd = bpmNamesX.map(bpmName => analyzedPerMagnet.x.bpm_offsets[bpmName].std);
-
-                const xOrbitScale = excitation / xKickStrength
-                const xExpectedDiff = xOrbitAtBpm.map(v => v * xOrbitScale * xEquivalentAngle)
-                const xExpectedDiffStd = xOrbitAtBpm.map(v => v * xOrbitScale * Math.abs(xEquivalentAngleStd))
-
-                const diffX = effectOfExcitationX.map((valueA, indexInA) => valueA - xBpmOffsets[indexInA])
-
-                const diffXErrBar = effectOfExcitationXRms.map((valueA, indexInA) => valueA + xBpmOffsetsStd[indexInA])
-
-                // create the data for the fit estimate
-
-                console.log( step , excitation, xEquivalentAngle )
-                // Create traces for x and y BPM offsets as separate lines
-                const label = '(step: ' + step + 'dI: ' + excitation + ')'
-                console.log("label", label)
-                const xDiffLine = {
-                    // should be substituted by s (longitudinal length)
-                    x: bpmNamesX,
-                    y: diffX,
-                    mode: 'lines+markers',
-                    name: 'x: bpm measured - fit [m] ' + label,
-                    type: 'scatter',
-                    // should automatically select a different color for each excitation
-                    line: {color: 'orange'},
-                };
-
-                const xExpectedDiffLine = {
-                    x: bpmNamesX,
-                    y: xExpectedDiff,
-                    mode: 'lines+markers',
-                    name: 'x: equivalent kick [m] ' + label,
-                    type: 'scatter',
-                    // the color here should match to the one of the corresponding xDiffline
-                    line: {color: 'blue'},
-                };
-
-                // Push the traces to the traces array
-                traces.push(xDiffLine, xExpectedDiffLine);
-            });
-            const layout = {
-                title: magnetName + ': effect of excitations',
-                xaxis: {title: 'bpm names'},
-                yaxis: {title: 'bpm offset diff: measured - fit'},
-                barmode: 'group', // To group the bars for each magnet
-            };
-            // Create the plot
-            Plotly.newPlot('plot1', traces, layout);
-        } else if (selectedValue == "magnet_bpm_off") {
-            console.log("here", estimatedAnglesFetched)
             const selectedMagnet = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName);
 
             // Extract BPM names and scaled BPM offsets for the x and y planes
-            const bpmNamesX = Object.keys(selectedMagnet.x.bpm_offsets);
-            const xBpmOffsets = bpmNamesX.map(bpmName => selectedMagnet.x.bpm_offsets[bpmName].value * 1000);
-
-            const bpmNamesY = Object.keys(selectedMagnet.y.bpm_offsets);
-            const yBpmOffsets = bpmNamesY.map(bpmName => selectedMagnet.y.bpm_offsets[bpmName].value * 1000);
+            const bpmNames = Object.keys(selectedMagnet.x.bpm_offsets);
+            const bpmOffsetsX = bpmNames.map(bpmName => selectedMagnet.x.bpm_offsets[bpmName].value);
+            const bpmOffsetsY = bpmNames.map(bpmName => selectedMagnet.y.bpm_offsets[bpmName].value);
 
             // Create traces for x and y BPM offsets as separate lines
             const xBpmOffsetsTrace = {
-                x: bpmNamesX,
-                y: xBpmOffsets,
+                x: bpmNames,
+                y: bpmOffsetsX,
                 mode: 'lines+markers',
                 name: 'x: BPM offsets [mm]',
-                line: {color: 'orange'}, // Orange color
+                line: {color: 'red'}, // Red color
             };
 
             const yBpmOffsetsTrace = {
-                x: bpmNamesY,
-                y: yBpmOffsets,
+                x: bpmNames,
+                y: bpmOffsetsY,
                 mode: 'lines+markers',
                 name: 'y: BPM offsets [mm]',
                 line: {color: 'blue'}, // Blue color1.1784783720862578e-11
             };
-
-            // Create a trace for the red y line (multiplied by -1)
-            const yRedBpmOffsets = yBpmOffsets.map(offset => -1 * offset);
-            const yRedBpmOffsetsTrace = {
-                x: bpmNamesY,
-                y: yRedBpmOffsets,
-                mode: 'lines+markers',
-                name: 'Y BPM Offsets (-1)',
-                line: {color: 'red'}, // Red color
-            };
             // Create the layout for the plot
-            const layout = {
+            const layoutX = {
                 title: 'BPM Offsets for X and Y Planes ' + magnetName,
                 xaxis: {title: 'BPM Name'},
                 yaxis: {title: 'Offset Value'},
             };
 
             // Combine the traces
-            const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace, yRedBpmOffsetsTrace];
-
-            // Create the plot
-            Plotly.newPlot('plot1', data3, layout);
-        } else if (selectedValue == "analysis_per_bpm") {
-            const m2mm = 1000
-            // Extract the necessary data from the fetched data for the first magnet
-            const firstMagnetData = Object.values(estimatedAnglesFetched.per_magnet).find(magnet => magnet.name === magnetName)
-
-            // Extract BPM names and scaled BPM offsets for the x and y planes (from fit)
-            const bpmNamesX = Object.keys(firstMagnetData.x.bpm_offsets);
-            const xBpmOffsets = bpmNamesX.map(bpmName => firstMagnetData.x.bpm_offsets[bpmName].value);
-            const bpmNamesY = Object.keys(firstMagnetData.y.bpm_offsets);
-            const yBpmOffsets = bpmNamesY.map(bpmName => firstMagnetData.y.bpm_offsets[bpmName].value);
-
-
-            const yOffset = firstMagnetData.y.offset.value; // Scale by 1000
-            const xOffset = firstMagnetData.x.offset.value; // Scale by 1000
-
-            // Create traces for x and y BPM offsets as separate lines
-            const xBpmOffsetsTrace = {
-                x: bpmNamesX,
-                y: xBpmOffsets,
-                mode: 'lines+markers',
-                name: 'X BPM Offsets (scaled)',
-                line: {color: 'orange'}, // Orange color
-            };
-
-            const yBpmOffsetsTrace = {
-                x: bpmNamesY,
-                y: yBpmOffsets,
-                mode: 'lines+markers',
-                name: 'Y BPM Offsets (scaled)',
-                line: {color: 'blue'}, // Blue color
-            };
-
-            // Create the layout for the plot
-            const layout = {
-                title: 'BPM Offsets and X, Y Offsets: ' + magnetName,
-                xaxis: {title: 'BPM Name / Offset Type'},
-                yaxis: {title: 'Offset Value'},
-            };
-
-            // Combine the traces
             const data3 = [xBpmOffsetsTrace, yBpmOffsetsTrace];
-
             // Create the plot
-            Plotly.newPlot('plot1', data3, layout);
+            Plotly.newPlot('plot1', tracesX, layout);
+            Plotly.newPlot('plot2', tracesXDiff, layout);
+            Plotly.newPlot('plot3', tracesY, layout);
+            Plotly.newPlot('plot4', tracesYDiff, layout);
+            Plotly.newPlot('plot5', data3, layoutX);
         }
     }

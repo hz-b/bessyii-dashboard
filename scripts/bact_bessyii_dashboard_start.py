@@ -10,22 +10,24 @@ from fastapi.staticfiles import StaticFiles
 
 from bact_bessyii_dashboard import _pkg_files
 import os
+
+from bact_bessyii_mls_ophyd.db.mongo_repository import InitializeMongo
+
 os.chdir(_pkg_files.joinpath("."))
 
 app = FastAPI()
 static_path = _pkg_files.joinpath("static")
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory=_pkg_files.joinpath("templates"))
-
+db_init = InitializeMongo()
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient("mongodb://127.0.0.1:27017/")
-    app.database = app.mongodb_client["bessyii"]
+    app.db_init = db_init
 
 
 @app.on_event("shutdown")
 def shutdown_db_client():
-    pass
+    app.db_init.close_connnection()
 
 app.include_router(api_router, tags=["measurements"], prefix="")
 
